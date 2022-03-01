@@ -35,7 +35,7 @@ def main():
     print("Is this the result you were waiting for?")
 
 def format_to_input(op,val):
-    data_set = {"operation": op, "value": val}
+    data_set = {"op": op, "value": val}
     json_dump = json.dumps(data_set)
     return json_dump
 
@@ -43,7 +43,7 @@ def convert_to_hex(s_input):
     return "0x"+str(s_input.encode("utf-8").hex())
 
 def call_docker(h_input):
-    subprocess.call("docker exec chessServer_hardhat_1 npx hardhat --network localhost chessServer:addInput --input "+h_input, shell=True)
+    subprocess.call("docker exec chess_hardhat_1 npx hardhat --network localhost chess:addInput --input "+h_input, shell=True)
 
 
 

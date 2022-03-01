@@ -58,7 +58,7 @@ def advance():
     operator = s_json["op"]
     app.logger.info("You are doing a " + str(operator) + " operation")
     #Extract value
-    value = float(s_json["value"])
+    value = s_json["value"]
     app.logger.info("With a value of " + str(value))
 
     if operator == "move":
