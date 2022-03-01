@@ -15,6 +15,9 @@ from os import environ
 import logging
 import requests 
 import json
+import sys
+sys.path.append('/mnt/chessServer-dapp/env/lib/python3.8/site-packages')
+print(sys.path)
 import chess
 from flask import Flask, request
 

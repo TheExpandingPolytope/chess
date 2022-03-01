@@ -12,11 +12,12 @@
 # specific language governing permissions and limitations under the License.
 
 DAPP_FS=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp
-DAPP_FS_ENV=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp/.env
+DAPP_FS_ENV=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp/env
 DAPP_FS_BIN=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp.ext2
 
 mkdir -p $DAPP_FS
+mkdir -p $DAPP_FS_ENV
+cp -R ./env/* $DAPP_FS_ENV
 cp ./chessServer.py $DAPP_FS
 cp ./run.sh $DAPP_FS
-genext2fs -f -i 512 -b 16 -d $DAPP_FS $DAPP_FS_BIN
-truncate -s %4096 $DAPP_FS_BIN
+genext2fs -f -i 512000 -b 160000 -d $DAPP_FS $DAPP_FS_BIN
