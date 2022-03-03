@@ -13,19 +13,19 @@
 DAPP_SERVER_MANAGER_TAG := 0.1.0
 DAPP_SERVER_MANAGER_IMG := cartesi/server-manager:$(DAPP_SERVER_MANAGER_TAG)
 
-CONTAINER_NAME := cartesi-chessServer-dapp
-CONTAINER_BASE := /opt/cartesi/chessServer
-CONTAINER_DAPP_FS_BIN := /opt/cartesi/chessServer-dapp-fs/chessServer-dapp.ext2
-CONTAINER_MACHINE_DIR := /opt/cartesi/chessServer-machine
+CONTAINER_NAME := cartesi-chessApp-dapp
+CONTAINER_BASE := /opt/cartesi/chessApp
+CONTAINER_DAPP_FS_BIN := /opt/cartesi/chessApp-dapp-fs/chessApp-dapp.ext2
+CONTAINER_MACHINE_DIR := /opt/cartesi/chessApp-machine
 
-DAPP_FS_BIN := chessServer-dapp.ext2
+DAPP_FS_BIN := chessApp-dapp.ext2
 BINARIES := rootfs.ext2 linux-5.5.19-ctsi-3.bin rom.bin
 MACHINE_DIR := machine
 
 .PHONY: console clean
 
 $(MACHINE_DIR): $(DAPP_FS_BIN) $(BINARIES)
-	@echo "Building cartesi-machine chessServer-dapp instance..."
+	@echo "Building cartesi-machine chessApp-dapp instance..."
 	@if docker inspect $(CONTAINER_NAME) > /dev/null 2>&1; then \
 		docker rm -f $(CONTAINER_NAME) > /dev/null; \
 	fi
@@ -51,8 +51,8 @@ $(BINARIES) &:
 	@wget -q -nc -i dependencies -P .
 	@shasum -c shasumfile
 
-$(DAPP_FS_BIN): chessServer.py run.sh
-	@echo "Building chessServer-dapp filesystem..."
+$(DAPP_FS_BIN): chessApp.py run.sh
+	@echo "Building chessApp-dapp filesystem..."
 	@if docker inspect $(CONTAINER_NAME) > /dev/null 2>&1; then \
 		docker rm -f $(CONTAINER_NAME) > /dev/null; \
 	fi

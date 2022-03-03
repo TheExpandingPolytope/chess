@@ -11,12 +11,14 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
+MACHINE_DIR=/opt/cartesi/chessApp-machine
+
 cartesi-machine \
     --ram-length=128Mi \
     --rollup \
-    --flash-drive=label:chessServer-dapp,filename:chessServer-dapp.ext2 \
+    --flash-drive=label:chessApp-dapp,filename:chessApp-dapp.ext2 \
     --flash-drive=label:root,filename:rootfs.ext2 \
     --ram-image=linux-5.5.19-ctsi-3.bin \
     --rom-image=rom.bin \
-    -i \
-    -- "/bin/sh"
+    --store=$MACHINE_DIR \
+    -- "/mnt/chessApp-dapp/run.sh"

@@ -17,7 +17,7 @@ import json
 import sys
 import string
 import random
-sys.path.append('/mnt/chessServer-dapp/env/lib/python3.8/site-packages')
+sys.path.append('/mnt/chessApp-dapp/env/lib/python3.8/site-packages')
 print(sys.path)
 import chess
 from flask import Flask, request

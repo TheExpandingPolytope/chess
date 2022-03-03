@@ -11,13 +11,12 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-DAPP_FS=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp
-DAPP_FS_ENV=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp/env
-DAPP_FS_BIN=/opt/cartesi/chessServer-dapp-fs/chessServer-dapp.ext2
-
-mkdir -p $DAPP_FS
-mkdir -p $DAPP_FS_ENV
-cp -R ./env/* $DAPP_FS_ENV
-cp ./chessServer.py $DAPP_FS
-cp ./run.sh $DAPP_FS
-genext2fs -f -i 512000 -b 160000 -d $DAPP_FS $DAPP_FS_BIN
+cartesi-machine \
+    --ram-length=128Mi \
+    --rollup \
+    --flash-drive=label:chessApp-dapp,filename:chessApp-dapp.ext2 \
+    --flash-drive=label:root,filename:rootfs.ext2 \
+    --ram-image=linux-5.5.19-ctsi-3.bin \
+    --rom-image=rom.bin \
+    -i \
+    -- "/bin/sh"
