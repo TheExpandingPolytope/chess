@@ -10,12 +10,13 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-
 from os import environ
 import logging
 import requests 
 import json
 import sys
+import string
+import random
 sys.path.append('/mnt/chessServer-dapp/env/lib/python3.8/site-packages')
 print(sys.path)
 import chess
@@ -28,50 +29,129 @@ board = chess.Board()
 dispatcher_url = environ["HTTP_DISPATCHER_URL"]
 app.logger.info(f"HTTP dispatcher url is {dispatcher_url}")
 
-#Rung game functions
+#List of active games
+games = {}
 
-# This function moves a piece on the board
-def move(moveString):
-    newMove = chess.Move.from_uci(moveString)
-    board.push(newMove)
-    return board.fen()
+class Game:
+    def __init__(self, id):
+        self.id = id
+        self.players = []
+        self.board = chess.Board()
 
-# Undo last action on the board
-def undo():
-    board.pop()
-    return board.fen()
+    def addPlayer(self, address):
+        self.players.append(address)
+        return self
+    
+    def removePlayer(self, address):
+        self.players.remove(address)
+        return self
 
+    def move(self, sender, moveString):
+        newMove = chess.Move.from_uci(moveString)
+        self.board.push(newMove)
+        return self
+
+    def undo(self):
+        self.board.pop()
+        return self
+
+class Matchmaker:
+    def __init__(self):
+        self.games = {}
+
+    def get(self, id):
+        return self.games[id]
+
+    def getByPlayer(self, address):
+        for key in self.games:
+            game = games[key]
+            if(address in game.players):
+                return game
+        return
+
+    def create(self, sender):
+        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10)
+        self.games[id] = Game(id)
+        self.games[id].addPlayer(sender)
+        return self.games[id]
+    
+    def remove(self, id):
+        self.games.pop(id)
+        return self.games[id]
+
+    def join(self, id, sender):
+        self.games[id].addPlayer(sender)
+        return self.games[id]
+
+    def leave(self, sender):
+        game = self.getByPlayer(sender)
+        game.removePlayer(sender)
+        return self.games[id]
+
+    def getStringState(self):
+        newGames = {}
+        for key in self.games:
+            game = self.games[key]
+            gamePartial = {
+                "id":game.id
+                "players": game.players,
+                "board_fen": game.board.fen()
+            }
+            newGames[key] = gamePartial
+        return str(newGames)
+
+    
+matchMaker = Matchmaker()
 
 @app.route("/advance", methods=["POST"])
 def advance():
     #gets json string in Hexadecimal and converts to normal string
     body = request.get_json()
-    app.logger.info(f"Received advance request body {body}")
-    app.logger.info("Printing Body Payload : "+ body["payload"])
+    metadata = body["metadata"]
 
-    partial = body["payload"][2:]
-    app.logger.info("Hex Without 0x : "+ partial)
+    partial = body["payload"][2:]    
     content = (bytes.fromhex(partial).decode("utf-8"))
+
     #Extracts operands and operator, calls the function and gets result
     s_json = json.loads(content)
-    #Extract operation
+
+    #Extract message values
     operator = s_json["op"]
-    app.logger.info("You are doing a " + str(operator) + " operation")
-    #Extract value
     value = s_json["value"]
+    sender = metadata["msg_sender"]
+    epochIndex = metadata["epoch_index"]
+    inputIndex = metadata["input_index"]
+    blockNumber = metadata["block_number"] 
+
+    #Log values
+    app.logger.info(f"Received advance request body {body}")
+    app.logger.info("Printing Body Payload : "+ body["payload"])
+    app.logger.info("Hex Without 0x : "+ partial)
+    app.logger.info("You are doing a " + str(operator) + " operation")
     app.logger.info("With a value of " + str(value))
 
-    if operator == "move":
-        result = move(value)
+    if operator == "create":
+        matchMaker.create(sender)
+        result = matchMaker.getStringState()
+    elif operator == "join":
+        matchMaker.join(value, sender)
+        result = matchMaker.getStringState()
+    elif operator == "leave":
+        matchMaker.leave(value, sender)
+        result = matchMaker.getStringState()
+    elif operator == "move":
+        game = matchMaker.getByPlayer(sender)
+        game.move(value)
+        result = matchMaker.getStringState()
     elif operator == "undo":
-        result = undo()
+        game = matchMaker.getByPlayer(sender)
+        game.undo()
+        result = matchMaker.getStringState()
     else:
         result = "The operation is invalid"
 
     app.logger.info("This should be the calculation result : " + result)
 
-    #Print ascii version of board
-    print(board)
 
     #Encode back to Hex to add in the notice
     newpayload = "0x"+str(result.encode("utf-8").hex())
