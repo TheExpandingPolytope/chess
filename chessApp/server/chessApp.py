@@ -60,7 +60,7 @@ class Matchmaker:
         self.games = {}
 
     def get(self, id):
-        return self.games[id]
+        return self.games[str(id)]
 
     def getByPlayer(self, address):
         for key in self.games:
@@ -70,7 +70,7 @@ class Matchmaker:
         return
 
     def create(self, sender):
-        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10)
+        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10))
         self.games[id] = Game(id)
         self.games[id].addPlayer(sender)
         return self.games[id]
@@ -93,7 +93,7 @@ class Matchmaker:
         for key in self.games:
             game = self.games[key]
             gamePartial = {
-                "id":game.id
+                "id":game.id,
                 "players": game.players,
                 "board_fen": game.board.fen()
             }
