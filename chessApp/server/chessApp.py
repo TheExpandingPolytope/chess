@@ -64,34 +64,34 @@ class Matchmaker:
 
     def getByPlayer(self, address):
         for key in self.games:
-            game = games[key]
+            game = self.games[str(key)]
             if(address in game.players):
                 return game
         return
 
     def create(self, sender):
         id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10))
-        self.games[id] = Game(id)
-        self.games[id].addPlayer(sender)
-        return self.games[id]
+        self.games[str(id)] = Game(id)
+        self.games[str(id)].addPlayer(sender)
+        return self.games[str(id)]
     
     def remove(self, id):
         self.games.pop(id)
-        return self.games[id]
+        return self.games[str(id)]
 
     def join(self, id, sender):
         self.games[id].addPlayer(sender)
-        return self.games[id]
+        return self.games[str(id)]
 
     def leave(self, sender):
         game = self.getByPlayer(sender)
         game.removePlayer(sender)
-        return self.games[id]
+        return self.games[str(id)]
 
     def getStringState(self):
         newGames = {}
         for key in self.games:
-            game = self.games[key]
+            game = self.games[str(key)]
             gamePartial = {
                 "id":game.id,
                 "players": game.players,
@@ -137,11 +137,11 @@ def advance():
         matchMaker.join(value, sender)
         result = matchMaker.getStringState()
     elif operator == "leave":
-        matchMaker.leave(value, sender)
+        matchMaker.leave(sender)
         result = matchMaker.getStringState()
     elif operator == "move":
         game = matchMaker.getByPlayer(sender)
-        game.move(value)
+        game.move(sender, value)
         result = matchMaker.getStringState()
     elif operator == "undo":
         game = matchMaker.getByPlayer(sender)
