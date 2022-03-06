@@ -43,7 +43,7 @@ def convert_to_hex(s_input):
     return "0x"+str(s_input.encode("utf-8").hex())
 
 def call_docker(h_input):
-    subprocess.call("docker exec chessapp_hardhat_1 npx hardhat --network localhost chessApp:addInput --input "+h_input, shell=True)
+    subprocess.call("docker exec chessapp_hardhat_1 npx hardhat --network localhost chessapp:addInput --input "+h_input, shell=True)
 
 
 

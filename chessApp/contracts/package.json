@@ -1,5 +1,5 @@
 {
-    "name": "chessApp",
+    "name": "chessapp",
     "version": "0.2.0",
     "description": "chess DApp",
     "main": "index.ts",
