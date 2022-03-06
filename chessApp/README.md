@@ -10,10 +10,10 @@ To run the calc DApp example, clone the repository as follows:
 $ git clone https://github.com/cartesi/rollups-examples.git
 ```
 
-Then, build the back-end for the calc example:
+Then, build the back-end for the chess app example:
 
 ```shell
-$ cd rollups-examples/calc
+$ cd rollups-examples/chessApp
 $ make machine
 ```
 
