@@ -22,7 +22,6 @@ cd /mnt/chessApp-dapp
 
 # Start chessApp dapp
 echo -n "Starting chessApp-dapp: "
-source ./env/bin/activate-ctsi
 HTTP_DISPATCHER_URL="http://127.0.0.1:$HTTP_DISPATCHER_PORT" \
 gunicorn --preload --workers 1 --bind 127.0.0.1:$DAPP_PORT chessApp:app &
 

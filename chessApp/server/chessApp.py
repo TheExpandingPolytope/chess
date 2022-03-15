@@ -156,7 +156,7 @@ def advance():
     #Encode back to Hex to add in the notice
     newpayload = "0x"+str(result.encode("utf-8").hex())
     app.logger.info("Operation Result in Hex: " + newpayload)
-    body["payload"] = newpayload
+    #body["payload"] = newpayload
     app.logger.info("New PayLoad Added: "+body["payload"])
     app.logger.info("Adding notice")
     response = requests.post(dispatcher_url + "/notice", json={"payload": body["payload"]})
