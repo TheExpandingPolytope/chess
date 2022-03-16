@@ -13,8 +13,10 @@ export default () => {
           <img class="item" src={require("../assets/horse.png")} className="Logo" alt="logo" />
           <Spacer x={2}/>
           <Button light color="default" auto>Play</Button>
-          <Spacer x={1}/>
+          <Spacer x={0.5}/>
           <Button light color="default" auto>About</Button>
+          <Spacer x={0.5}/>
+          <Button light color="default" auto>Rankings</Button>
         </div>
         <div class="nav-right">
           <Auth/>
