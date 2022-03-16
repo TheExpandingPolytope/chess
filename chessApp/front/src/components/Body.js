@@ -8,7 +8,7 @@ export default () => {
     return (
         <div class="body">
             <div class="header">
-                <Text h1 size={100}>Ultrachess</Text> 
+                <Text h2 size={100}>Ultrachess</Text> 
                 <Text>Immutable chess backed by blockchain technology, with more than just your elo at stake</Text>
             </div>
             <div class="buttons">
@@ -21,7 +21,7 @@ export default () => {
                 </Button>
             </div>
             <div class="content">
-                <Card shadow={true} css={{ height:"700px", width: "600px", display:"flex", alignContent:"center", justifyContent:"center", }}>
+                <Card shadow={true} css={{ height:"700px", width: "800px", display:"flex", alignContent:"center", justifyContent:"center", }}>
                     <Card.Header css={{paddingLeft:"10px"}}>
                         <Button.Group size="lg" light>
                            
