@@ -10,6 +10,10 @@ nav {
     /* Cosmetics */
 }
 
+nav a {
+  color: black;
+}
+
 nav .center {
     display: flex;
     justify-content: space-between;
