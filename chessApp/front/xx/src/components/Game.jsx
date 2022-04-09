@@ -12,8 +12,8 @@ export default () => {
   })
 
   return (
-    <div class="game">
-        <div class="gameView">
+    <div className="game">
+        <div className="gameView">
             <Chessboard id="BasicBoard" />
 
         </div>

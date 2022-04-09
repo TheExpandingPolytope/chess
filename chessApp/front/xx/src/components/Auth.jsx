@@ -7,6 +7,7 @@ import { networkParams } from "../ether/networks";
 import { connectors } from "../ether/connectors";
 import { toHex, truncateAddress } from "../ether/utils";
 import { useState } from "react";
+import { setIsSignedIn } from "../store/auth/authSlice";
 
 export default () => {
   const { setVisible, bindings } = useModal();
@@ -25,8 +26,9 @@ export default () => {
     activate,
     deactivate,
     active,
+    connector,
   } = useWeb3React();
-
+  
   const handleNetwork = (e) => {
     const id = e.target.value;
     setNetwork(Number(id));
@@ -106,7 +108,7 @@ export default () => {
       <div>
       {active ? (
         <Button shadow icon={<FaUser/>} flat color="primary" auto onClick={() => disconnect()}>
-          {account}
+          {truncateAddress( account)}
         </Button>
       ) : (
         <Button shadow icon={<FaUser/>} flat color="primary" auto onClick={() => setVisible(true)}>
@@ -152,7 +154,9 @@ export default () => {
             <Button
               variant="outline"
               onClick={() => {
+                dispatch(setIsSignedIn(true));
                 activate(connectors.injected);
+                console.log("metamask")
                 setProvider("injected");
               }}
               w="100%"
