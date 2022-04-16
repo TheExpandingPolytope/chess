@@ -14,6 +14,16 @@ nav a {
   color: black;
 }
 
+nav .logo {
+  width: 60px;
+  margin-top: 10px;
+  margin-right: 20px;
+}
+
+nav .navItem {
+  margin-top: 15px;
+}
+
 nav .center {
     display: flex;
     justify-content: space-between;
@@ -22,28 +32,18 @@ nav .center {
 }
 
 .nav-right {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 20px;
-    padding-bottom: 20px;
+  margin-top: 20px;   
 }
 
 .nav-left {
     display: flex;
     justify-content: space-between;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    margin-top: 2px;
 }
 
-.item {
-    height: 100%;
-    margin-top: 10px;
-}
+
   
-  .Logo {
-    grid-area: logo;
-    height: 50px;
-  }
+
   
   .Nav {
     display: grid;

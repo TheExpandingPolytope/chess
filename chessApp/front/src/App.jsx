@@ -1,5 +1,6 @@
-import * as React from 'react';
-import { NextUIProvider } from '@nextui-org/react';
+import { useState, useEffect } from 'react'
+import logo from './logo.svg'
+import './App.css'
 import Navbar from './components/Navbar';
 import Body from './components/Body';
 import {
@@ -8,25 +9,28 @@ import {
   Route,
 } from "react-router-dom"; 
 import Game from './components/Game';
-import store from "./store/index";
-import { Provider } from 'react-redux';
-console.log(store)
+import { useDispatch } from 'react-redux';
+import { fetchGames } from './store/game/gameSlice';
+
 function App() {
+  const [count, setCount] = useState(0)
+  var dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchGames())
+  }, [])
+
   return (
-    <Provider store={store}>
-      <Router>
-        <NextUIProvider>
-          <Navbar/>
+    <div className="App">
+      <Navbar/>
           <Routes>
             <Route path="/" element={<Body />} />
             <Route path="about" element={<Body />} />
             <Route path="rankings" element={<Body />} />
-            <Route path="game" element={<Game />} />
+            <Route path="/game/:gameId" element={<Game />} />
           </Routes>
-        </NextUIProvider>
-      </Router>
-    </Provider>
-  );
+    </div>
+  )
 }
 
-export default App;
+export default App
