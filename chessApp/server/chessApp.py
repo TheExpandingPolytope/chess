@@ -38,22 +38,72 @@ class Game:
         self.players = []
         self.board = chess.Board()
 
+    def __isInGame(self, address):
+        return address in self.players
+    
+    def __isTurn(self, address):
+        turn = self.board.turn
+        if(turn == chess.WHITE):
+            return self.players.index(address) == 0
+        else:
+            return self.players.index(address) > 0
+    
+    def __isMaxPlayers(self):
+        return len(self.players) >= 2
+
+    def __isMinPlayers(self):
+        return len(self.players) >= 2
+
+    def __isGameEnd(self):
+        outcome = self.board.outcome
+        return outcome != None
+
     def addPlayer(self, address):
-        self.players.append(address)
-        return self
+        try:
+            canAdd = (not self.__isMaxPlayers()) and (not self.__isInGame(address))
+            if(canAdd):
+                self.players.append(address)
+                return True
+            return False
+        except:
+            return False
     
     def removePlayer(self, address):
-        self.players.remove(address)
-        return self
+        try:
+            self.players.remove(address)
+            return True
+        except:
+            return False
 
     def move(self, sender, moveString):
-        newMove = chess.Move.from_uci(moveString)
-        self.board.push(newMove)
-        return self
+        try:
+            #Determine if player can move
+            newMove = chess.Move.from_uci(moveString)
+            isLegal = newMove is self.board.legal_moves
+            isInGame = self.__isInGame(sender)
+            isTurn = self.__isTurn(sender)
+            isMinPlayers = self.__isMinPlayers()
+            isGameEnd = self.__isGameEnd()
+            canMove = isLegal and isInGame and isTurn and isMinPlayers and (not isGameEnd)
+            if(canMove):
+                #Handle move
+                self.board.push(newMove)
+                #Send end game notice
+                isGameEnd = self.__isGameEnd()
+                if(isGameEnd):
+                    send_notice(sender, "end", True)
+                return True
+            else:
+                return False
+        except:
+            return False
 
     def undo(self):
-        self.board.pop()
-        return self
+        try:
+            self.board.pop()
+            return True
+        except:
+            return False
 
 class Matchmaker:
     def __init__(self):
@@ -67,26 +117,31 @@ class Matchmaker:
             game = self.games[str(key)]
             if(address in game.players):
                 return game
-        return
+        return False
+    
+    def isInGame(self, sender):
+        return self.getByPlayer(sender) != False
 
     def create(self, sender):
-        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10))
-        self.games[str(id)] = Game(id)
-        self.games[str(id)].addPlayer(sender)
-        return self.games[str(id)]
+        canCreate = not self.isInGame(sender)
+        if(canCreate):
+            id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 10))
+            self.games[str(id)] = Game(id)
+            return self.games[str(id)].addPlayer(sender)
+        return False
+
     
     def remove(self, id):
         self.games.pop(id)
-        return self.games[str(id)]
+        return True
 
     def join(self, id, sender):
-        self.games[id].addPlayer(sender)
-        return self.games[str(id)]
+        game = self.games[id]
+        return game.addPlayer(sender)
 
     def leave(self, sender):
         game = self.getByPlayer(sender)
-        game.removePlayer(sender)
-        return self.games[str(id)]
+        return game.removePlayer(sender)
 
     def getStringState(self):
         newGames = {}
@@ -103,12 +158,33 @@ class Matchmaker:
     
 matchMaker = Matchmaker()
 
+def format_to_input(sender, operation, success):
+    data_set = {
+        "sender": sender, 
+        "operation": operation, 
+        "success": success
+    }
+    json_dump = json.dumps(data_set)
+    return json_dump
+
+def convert_to_hex(s_input):
+    return "0x"+str(s_input.encode("utf-8").hex())
+
+def send_notice(sender, operation, success):
+    json_object = format_to_input(sender, operation, success)
+    app.logger.info("Sending notice : "+ json_object)
+    hex_string = convert_to_hex(json_object)
+    response = requests.post(dispatcher_url + "/notice", json={"payload": hex_string})
+    app.logger.info(f"Received notice status {response.status_code} body {response.content}")
+    app.logger.info("New PayLoad Added: "+ hex_string)
+    app.logger.info("Adding notice")
+
+
 @app.route("/advance", methods=["POST"])
 def advance():
     #gets json string in Hexadecimal and converts to normal string
     body = request.get_json()
     metadata = body["metadata"]
-
     partial = body["payload"][2:]    
     content = (bytes.fromhex(partial).decode("utf-8"))
 
@@ -130,37 +206,33 @@ def advance():
     app.logger.info("You are doing a " + str(operator) + " operation")
     app.logger.info("With a value of " + str(value))
 
+    #Handle operator
+    success = False
     if operator == "create":
-        matchMaker.create(sender)
-        result = matchMaker.getStringState()
+        success = matchMaker.create(sender)
     elif operator == "join":
-        matchMaker.join(value, sender)
-        result = matchMaker.getStringState()
+        success = matchMaker.join(value, sender)
     elif operator == "leave":
-        matchMaker.leave(sender)
-        result = matchMaker.getStringState()
+        success = matchMaker.leave(sender)
     elif operator == "move":
         game = matchMaker.getByPlayer(sender)
-        game.move(sender, value)
-        result = matchMaker.getStringState()
+        success = game.move(sender, value)
     elif operator == "undo":
         game = matchMaker.getByPlayer(sender)
-        game.undo()
-        result = matchMaker.getStringState()
-    else:
-        result = "The operation is invalid"
+        success = game.undo()
+    
+    #Send notice on state change
+    send_notice(sender, operator, success)
 
+    #Set new state
+    result = matchMaker.getStringState()
     app.logger.info("This should be the calculation result : " + result)
-
 
     #Encode back to Hex to add in the notice
     newpayload = "0x"+str(result.encode("utf-8").hex())
     app.logger.info("Operation Result in Hex: " + newpayload)
-    #body["payload"] = newpayload
-    app.logger.info("New PayLoad Added: "+body["payload"])
-    app.logger.info("Adding notice")
-    response = requests.post(dispatcher_url + "/notice", json={"payload": body["payload"]})
-    app.logger.info(f"Received notice status {response.status_code} body {response.content}")
+
+    #Handle Finish, Close machine
     app.logger.info("Finishing")
     response = requests.post(dispatcher_url + "/finish", json={"status": "accept"})
     app.logger.info(f"Received finish status {response.status_code}")
@@ -171,3 +243,6 @@ def advance():
 def inspect(payload):
     app.logger.info(f"Received inspect request payload {payload}")
     return {"reports": [{"payload": payload}]}, 200
+
+
+

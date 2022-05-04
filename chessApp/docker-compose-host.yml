@@ -16,6 +16,7 @@ services:
       # TODO: currently hardhat's default mnemonic
       # this should become a secret
       - MNEMONIC=test test test test test test test test test test test junk
+      - MNEMONICTWO=indoor dish desk flag debris potato excuse depart ticket judge file exit
       - CHAIN_ID=31337
       - RUST_LOG=info
       - LOGIC_CONFIG_PATH=/opt/cartesi/share/config/logic-config.toml
