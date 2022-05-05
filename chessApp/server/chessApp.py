@@ -19,12 +19,11 @@ import string
 import random
 sys.path.append('/mnt/chessApp-dapp/env/lib/python3.8/site-packages')
 print(sys.path)
-import chess
+import chess.pgn
 from flask import Flask, request
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
-board = chess.Board()
 
 dispatcher_url = environ["HTTP_DISPATCHER_URL"]
 app.logger.info(f"HTTP dispatcher url is {dispatcher_url}")
@@ -36,13 +35,14 @@ class Game:
     def __init__(self, id):
         self.id = id
         self.players = []
-        self.board = chess.Board()
+        self.rootGame = chess.pgn.Game()
+        self.state = self.rootGame
 
     def __isInGame(self, address):
         return address in self.players
     
     def __isTurn(self, address):
-        turn = self.board.turn
+        turn = self.state.board().turn
         if(turn == chess.WHITE):
             return self.players.index(address) == 0
         else:
@@ -55,7 +55,7 @@ class Game:
         return len(self.players) >= 2
 
     def __isGameEnd(self):
-        outcome = self.board.outcome()
+        outcome = self.state.board().outcome()
         return outcome != None
 
     def addPlayer(self, address):
@@ -80,7 +80,7 @@ class Game:
         ##try:
         #Determine if player can move
         newMove = chess.Move.from_uci(moveString)
-        isLegal = newMove in self.board.legal_moves
+        isLegal = newMove in self.state.board().legal_moves
         isInGame = self.__isInGame(sender)
         isTurn = self.__isTurn(sender)
         isMinPlayers = self.__isMinPlayers()
@@ -92,7 +92,7 @@ class Game:
         canMove = isLegal and isInGame and isTurn and isMinPlayers and (not isGameEnd)
         if(canMove):
             #Handle move
-            self.board.push(newMove)
+            self.state = self.state.add_variation(newMove)
             #Send end game notice
             isGameEnd = self.__isGameEnd()
             if(isGameEnd):
@@ -105,7 +105,7 @@ class Game:
 
     def undo(self):
         try:
-            self.board.pop()
+            self.state.board().pop()
             return True
         except:
             return False
@@ -155,7 +155,7 @@ class Matchmaker:
             gamePartial = {
                 "id":game.id,
                 "players": game.players,
-                "board_fen": game.board.fen()
+                "board_pgn": str(game.rootGame)
             }
             newGames[key] = gamePartial
         return str(newGames)
@@ -203,6 +203,7 @@ def advance():
     epochIndex = metadata["epoch_index"]
     inputIndex = metadata["input_index"]
     blockNumber = metadata["block_number"] 
+    timeStamp = metadata["time_stamp"]
 
     #Log values
     app.logger.info(f"Received advance request body {body}")
