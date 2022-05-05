@@ -55,7 +55,7 @@ class Game:
         return len(self.players) >= 2
 
     def __isGameEnd(self):
-        outcome = self.board.outcome
+        outcome = self.board.outcome()
         return outcome != None
 
     def addPlayer(self, address):
@@ -76,27 +76,32 @@ class Game:
             return False
 
     def move(self, sender, moveString):
-        try:
-            #Determine if player can move
-            newMove = chess.Move.from_uci(moveString)
-            isLegal = newMove is self.board.legal_moves
-            isInGame = self.__isInGame(sender)
-            isTurn = self.__isTurn(sender)
-            isMinPlayers = self.__isMinPlayers()
+        app.logger.info("isMoving now")
+        ##try:
+        #Determine if player can move
+        newMove = chess.Move.from_uci(moveString)
+        isLegal = newMove in self.board.legal_moves
+        isInGame = self.__isInGame(sender)
+        isTurn = self.__isTurn(sender)
+        isMinPlayers = self.__isMinPlayers()
+        isGameEnd = self.__isGameEnd()
+        
+        #Log move state
+        app.logger.info("isGameEnd: " + str(isGameEnd) + " isMinPlayers: " + str(isMinPlayers) + "isTurn: "+str(isTurn)+" isInGame: "+str(isInGame)+" isLegal: "+str(isLegal))
+
+        canMove = isLegal and isInGame and isTurn and isMinPlayers and (not isGameEnd)
+        if(canMove):
+            #Handle move
+            self.board.push(newMove)
+            #Send end game notice
             isGameEnd = self.__isGameEnd()
-            canMove = isLegal and isInGame and isTurn and isMinPlayers and (not isGameEnd)
-            if(canMove):
-                #Handle move
-                self.board.push(newMove)
-                #Send end game notice
-                isGameEnd = self.__isGameEnd()
-                if(isGameEnd):
-                    send_notice(sender, "end", True)
-                return True
-            else:
-                return False
-        except:
+            if(isGameEnd):
+                send_notice(sender, "end", True)
+            return True
+        else:
             return False
+        ##except:
+        ##    return False
 
     def undo(self):
         try:
